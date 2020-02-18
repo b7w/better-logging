@@ -1,0 +1,13 @@
+GET http://127.0.0.1:8000/api/search
+
+
+###
+
+GET http://127.0.0.1:8080/api/search
+
+
+###
+
+GET http://127.0.0.1:8000/api/modules
+
+###
