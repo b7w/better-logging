@@ -19,38 +19,34 @@ app.blueprint(swagger_blueprint)
 app.config.setdefault('API_LICENSE_NAME', 'MIT')
 app.config.setdefault('API_VERSION', '0.1')
 app.config.setdefault('MODULES_UPDATE_TIME', '60')
+app.config.from_envvar('CONFIG_PATH')
 
 
 async def register_db(app, loop):
-    url = f"postgres://{'root'}:{'root'}@{'192.168.99.100'}:{5432}/{'root'}"
-    app.config['pool'] = await create_pool(
-        dsn=url,
-        # in bytes
+    app.db = await create_pool(
+        dsn=app.config.DB_URL,
         min_size=2,
-        # in bytes
         max_size=8,
-        # maximum query
         max_queries=48,
-        # maximum idle times
         max_inactive_connection_lifetime=640,
-        loop=loop)
+        loop=loop
+    )
     LOG.info('Create PG pool')
 
 
 async def close_connection(app, loop):
-    pool = app.config['pool']
-    pool.cose()
+    await app.db.close()
     LOG.info('Closed PG pool')
 
 
-async def find_modules(pool):
-    async with pool.acquire() as conn:
+async def find_modules(db):
+    async with db.acquire() as conn:
         sql = '''
-                    SELECT distinct mapped_value
-                    FROM logging_event_property
-                    WHERE mapped_key = 'appName'
-                    ORDER BY mapped_value;
-                '''
+            SELECT distinct mapped_value
+            FROM logging_event_property
+            WHERE mapped_key = 'appName'
+            ORDER BY mapped_value;
+        '''
         rows = await conn.fetch(sql)
         return [it[0] for it in rows]
 
@@ -58,12 +54,14 @@ async def find_modules(pool):
 async def update_modules(app):
     t = int(app.config.get('MODULES_UPDATE_TIME'))
     while True:
-        if 'pool' in app.config:
-            res = await find_modules(app.config.pool)
-            if app.config.get('modules') != res:
-                app.config.modules = res
-                LOG.info('Update modules: %s', app.config.modules)
-        await asyncio.sleep(t)
+        res = await find_modules(app.db)
+        if app.config.get('modules') != res:
+            app.config.modules = res
+            LOG.info('Update modules: %s', app.config.modules)
+        try:
+            await asyncio.sleep(t)
+        except asyncio.TimeoutError as e:
+            LOG.info(e)
 
 
 app.register_listener(register_db, 'before_server_start')
@@ -79,7 +77,7 @@ async def modules(request):
     res = request.app.config.get('modules', [])
     if res:
         return json(res)
-    return json(await find_modules(request.app.config.pool))
+    return json(await find_modules(request.app.db))
 
 
 @app.route("/api/search")
@@ -87,8 +85,7 @@ async def search(request):
     """
     Logging Event search
     """
-    pool = request.app.config.pool
-    async with pool.acquire() as conn:
+    async with request.app.db.acquire() as conn:
         sql = '''
             SELECT event_id, timestmp, level_string, logger_name, formatted_message
             FROM logging_event
