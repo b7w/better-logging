@@ -1,16 +1,15 @@
 import asyncio
 import logging
-from datetime import datetime
 
-import pytz
+import arrow
 from asyncpg import create_pool
 from sanic import Sanic
 from sanic.log import LOGGING_CONFIG_DEFAULTS
 from sanic.response import json
 from sanic_openapi import swagger_blueprint
 
-LOGGING_CONFIG_DEFAULTS['loggers']['backend'] = {"level": "INFO", "handlers": ["console"]}
-MSK_TZ = pytz.timezone('Europe/Moscow')
+LOGGING_CONFIG_DEFAULTS['loggers']['backend'] = {'level': 'INFO', 'handlers': ['console']}
+MSK_TZ = 'Europe/Moscow'
 LOG = logging.getLogger('backend')
 
 app = Sanic(name='better-logging', log_config=LOGGING_CONFIG_DEFAULTS)
@@ -69,7 +68,7 @@ app.register_listener(close_connection, 'after_server_stop')
 app.add_task(update_modules)
 
 
-@app.route("/api/modules")
+@app.route('/api/modules')
 async def modules(request):
     """
     From logging properties find all `appName`s
@@ -80,28 +79,43 @@ async def modules(request):
     return json(await find_modules(request.app.db))
 
 
-@app.route("/api/search")
+@app.route('/api/search', methods={'POST'})
 async def search(request):
     """
     Logging Event search
     """
+
+    def date_between(dt):
+        dt_from = arrow.get(dt[0]).floor('day')
+        if len(dt) == 2:
+            dt_to = arrow.get(dt[1]).ceil('day')
+        else:
+            dt_to = dt_from.replace().ceil('day')
+        return dt_from.timestamp * 1000, dt_to.timestamp * 1000
+
+    params = request.json
     async with request.app.db.acquire() as conn:
         sql = '''
             SELECT event_id, timestmp, level_string, logger_name, formatted_message
             FROM logging_event
+            WHERE level_string = any($1::varchar[]) AND timestmp between $2 AND $3
             ORDER BY event_id DESC
             LIMIT 1001
         '''
-        rows = await conn.fetch(sql)
+        levels = params['levels']
+        time_from, time_to = date_between(params['datetime'])
+        rows = await conn.fetch(sql, levels, time_from, time_to)
         res = []
         for row in rows:
             event_id, timestmp, level_string, logger_name, message = row
-            d = datetime.fromtimestamp(timestmp / 1000, MSK_TZ).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-4]
+            d = arrow.Arrow \
+                .fromtimestamp(timestmp / 1000, 'Europe/Moscow') \
+                .format('YYYY-MM-DDTHH:mm:ss.SS')
             rec = dict(id=event_id, app='some', datetime=d,
                        level=level_string, logger_name=logger_name[:48], message=message)
             res.append(rec)
     return json(res)
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, access_log=False)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8000, access_log=False)

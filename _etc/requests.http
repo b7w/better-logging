@@ -1,5 +1,18 @@
-GET http://127.0.0.1:8000/api/search
+POST http://127.0.0.1:8000/api/search
+Content-Type: application/json
 
+{
+    "levels": [
+        "ERROR",
+        "WARN",
+        "INFO",
+        "DEBUG"
+    ],
+    "datetime": [
+        "2020-02-17",
+        "2020-02-18"
+    ]
+}
 
 ###
 

@@ -108,9 +108,6 @@
                     return 'mdi-minus-box';
                 return 'mdi-checkbox-blank-outline'
             },
-            firstSelectedModules() {
-                return this.selectedModules.slice(0, 4)
-            },
 
         },
         mounted() {
@@ -143,7 +140,12 @@
             },
             search() {
                 let that = this;
-                fetch('api/search')
+                let params = {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({levels: this.selectedLevels, datetime: this.period})
+                };
+                fetch('api/search', params)
                     .then(response => {
                         return response.json()
                     })
