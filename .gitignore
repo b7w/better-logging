@@ -5,7 +5,7 @@ node_modules
 tmp
 
 # Build directories
-\.egg-info
+*.egg-info
 dist
 
 # local env files

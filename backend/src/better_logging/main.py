@@ -8,9 +8,9 @@ from sanic.log import LOGGING_CONFIG_DEFAULTS
 from sanic.response import json
 from sanic_openapi import swagger_blueprint
 
-LOGGING_CONFIG_DEFAULTS['loggers']['backend'] = {'level': 'INFO', 'handlers': ['console']}
+LOGGING_CONFIG_DEFAULTS['loggers']['better_logging'] = {'level': 'INFO', 'handlers': ['console']}
 MSK_TZ = 'Europe/Moscow'
-LOG = logging.getLogger('backend')
+LOG = logging.getLogger('better_logging')
 
 app = Sanic(name='better-logging', log_config=LOGGING_CONFIG_DEFAULTS)
 app.blueprint(swagger_blueprint)

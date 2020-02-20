@@ -1,0 +1,22 @@
+---
+kind: pipeline
+name: Better Logging CI/CD
+
+steps:
+  - name: Backend Tests
+    pull: always
+    image: python:3.7-slim
+    environment:
+      XDG_CACHE_HOME: tmp/pip
+    commands:
+      - cd backend
+      - pip3 install poetry
+      - poetry install
+      - poetry run pytest
+
+  - name: Frontend Tests
+    pull: always
+    image: node:13-alpine
+    commands:
+      - cd frontend
+      - npm install
