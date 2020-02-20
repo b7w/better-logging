@@ -8,6 +8,8 @@ steps:
     image: python:3.7-slim
     environment:
       XDG_CACHE_HOME: tmp/pip
+      SANIC_NO_UVLOOP: true
+      SANIC_NO_UJSON: true
     commands:
       - cd backend
       - pip3 install poetry
