@@ -147,7 +147,8 @@
                     body: JSON.stringify({
                         levels: this.selectedLevels,
                         datetime: this.period,
-                        modules: this.selectedModules
+                        modules: this.selectedModules,
+                        query: this.searchValue,
                     })
                 };
                 that.store.changeLoading(true);

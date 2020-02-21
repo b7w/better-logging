@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from json import loads
+import time
 
 import arrow
 from asyncpg import create_pool
@@ -8,6 +8,8 @@ from sanic import Sanic
 from sanic.log import LOGGING_CONFIG_DEFAULTS
 from sanic.response import json
 from sanic_openapi import swagger_blueprint
+
+from better_logging.core import date_between, parse_query
 
 LOGGING_CONFIG_DEFAULTS['loggers']['better_logging'] = {'level': 'INFO', 'handlers': ['console']}
 MSK_TZ = 'Europe/Moscow'
@@ -61,7 +63,7 @@ async def update_modules(app):
         try:
             await asyncio.sleep(t)
         except asyncio.TimeoutError as e:
-            LOG.info(e)
+            LOG.warning(e)
 
 
 app.register_listener(register_db, 'before_server_start')
@@ -85,15 +87,6 @@ async def search(request):
     """
     Logging Event search
     """
-
-    def date_between(dt):
-        dt_from = arrow.get(dt[0]).floor('day')
-        if len(dt) == 2:
-            dt_to = arrow.get(dt[1]).ceil('day')
-        else:
-            dt_to = dt_from.replace().ceil('day')
-        return dt_from.timestamp * 1000, dt_to.timestamp * 1000
-
     params = request.json
     async with request.app.db.acquire() as conn:
         sql = '''
@@ -102,25 +95,39 @@ async def search(request):
                    e.level_string,
                    e.logger_name,
                    e.formatted_message as message,
-                   json_object_agg(p.mapped_key, p.mapped_value) as props
+                   p1.mapped_value     as app,
+                   p2.mapped_value     as traceId
             FROM logging_event e
-            JOIN logging_event_property p on e.event_id = p.event_id
-            WHERE e.level_string = any($1::varchar[]) AND e.timestmp between $2 AND $3
-            GROUP BY e.event_id
-            HAVING json_object_agg(p.mapped_key, p.mapped_value) ->> 'appName' = any($4::varchar[])
+                LEFT JOIN logging_event_property p1 on e.event_id = p1.event_id AND p1.mapped_key = 'appName'
+                LEFT JOIN logging_event_property p2 on e.event_id = p2.event_id AND p2.mapped_key = 'trace-id'
+            WHERE e.timestmp between $1 AND $2
+                AND e.level_string = any($3::varchar[])
+                AND p1.mapped_value = any($4::varchar[])
+                AND p2.mapped_value LIKE any($5::varchar[])
+                AND lower(e.formatted_message) LIKE any($6::varchar[])
             ORDER BY e.event_id DESC
-            LIMIT 1001
+            LIMIT 1000
         '''
         time_from, time_to = date_between(params['datetime'])
-        rows = await conn.fetch(sql, params['levels'], time_from, time_to, params['modules'])
+        trace_id, messages = parse_query(params['query'])
+        star = time.time_ns()
+        rows = await conn.fetch(sql,
+                                time_from, time_to,
+                                params['levels'],
+                                params['modules'],
+                                trace_id,
+                                messages
+                                )
         res = []
+        end = round((time.time_ns() - star) / 10 ** 6)
+        LOG.info('Found %s in %sms rows for %s', len(rows), end, params)
         for row in rows:
             d = arrow.Arrow \
                 .fromtimestamp(row['timestmp'] / 1000, 'Europe/Moscow') \
                 .format('YYYY-MM-DDTHH:mm:ss.SS')
             res.append(dict(
                 id=row['event_id'],
-                app=loads(row['props']).get('appName'),
+                app=row['app'],
                 datetime=d,
                 level=row['level_string'],
                 logger_name=row['logger_name'],

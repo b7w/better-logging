@@ -15,7 +15,8 @@ Content-Type: application/json
     "modules": [
         "dbo",
         "spas"
-    ]
+    ],
+    "query": ""
 }
 
 ###
