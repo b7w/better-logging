@@ -88,6 +88,7 @@
             return {
                 valid: false,
                 datePickerMenu: false,
+                loading: false,
                 searchValue: "",
                 searchRule: [],
                 selectedLevels: ['ERROR', 'WARN', 'INFO', 'DEBUG'],
@@ -149,15 +150,16 @@
                         modules: this.selectedModules
                     })
                 };
+                that.store.changeLoading(true);
                 fetch('api/search', params)
                     .then(response => {
-                        return response.json()
+                        return response.json();
                     })
                     .then(it => {
-                        that.store.updateEvents(it)
-                        // for (const row of it) {
-                        //     that.store.events.push(row)
-                        // }
+                        that.store.updateEvents(it);
+                    })
+                    .finally(() => {
+                        that.store.changeLoading(false);
                     })
             }
         }

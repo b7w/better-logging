@@ -1,7 +1,11 @@
 <template>
     <v-container>
+        <p class="caption text--secondary ml-4">Found {{ eventsCount }} events</p>
+
         <v-data-table :headers="headers"
                       :items="events"
+                      :loading="loading"
+                      :loading-text="'Loading... Please wait'"
                       :disable-pagination="true"
                       :disable-sort="true"
                       :hide-default-footer="true"
@@ -38,6 +42,7 @@
                     {text: 'Message', value: 'message', width: 196},
                     {text: '', value: 'data-table-expand', width: 32},
                 ],
+                loading: false,
                 events: [],
             }
         },
@@ -45,6 +50,14 @@
             this.store.listenUpdateEvents((data) => {
                 this.events = data;
             });
+            this.store.listenLoading((data) => {
+                this.loading = data;
+            });
+        },
+        computed: {
+            eventsCount() {
+                return this.events.length
+            },
         },
     }
 </script>

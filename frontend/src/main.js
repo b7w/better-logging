@@ -12,6 +12,12 @@ Vue.use(Vuetify);
 let store = {
     eventBus: new Vue(),
     events: [],
+    changeLoading(data) {
+        this.eventBus.$emit('change_loading', data);
+    },
+    listenLoading(callback) {
+        return this.eventBus.$on('change_loading', callback);
+    },
     updateEvents(data) {
         this.eventBus.$emit('update_events', data);
     },
