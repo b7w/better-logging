@@ -11,6 +11,10 @@ Content-Type: application/json
     "datetime": [
         "2020-02-17",
         "2020-02-18"
+    ],
+    "modules": [
+        "dbo",
+        "spas"
     ]
 }
 

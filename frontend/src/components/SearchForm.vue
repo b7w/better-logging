@@ -143,7 +143,11 @@
                 let params = {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({levels: this.selectedLevels, datetime: this.period})
+                    body: JSON.stringify({
+                        levels: this.selectedLevels,
+                        datetime: this.period,
+                        modules: this.selectedModules
+                    })
                 };
                 fetch('api/search', params)
                     .then(response => {

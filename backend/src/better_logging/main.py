@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from json import loads
 
 import arrow
 from asyncpg import create_pool
@@ -96,24 +97,35 @@ async def search(request):
     params = request.json
     async with request.app.db.acquire() as conn:
         sql = '''
-            SELECT event_id, timestmp, level_string, logger_name, formatted_message
-            FROM logging_event
-            WHERE level_string = any($1::varchar[]) AND timestmp between $2 AND $3
-            ORDER BY event_id DESC
+            SELECT e.event_id,
+                   e.timestmp,
+                   e.level_string,
+                   e.logger_name,
+                   e.formatted_message as message,
+                   json_object_agg(p.mapped_key, p.mapped_value) as props
+            FROM logging_event e
+            JOIN logging_event_property p on e.event_id = p.event_id
+            WHERE e.level_string = any($1::varchar[]) AND e.timestmp between $2 AND $3
+            GROUP BY e.event_id
+            HAVING json_object_agg(p.mapped_key, p.mapped_value) ->> 'appName' = any($4::varchar[])
+            ORDER BY e.event_id DESC
             LIMIT 1001
         '''
-        levels = params['levels']
         time_from, time_to = date_between(params['datetime'])
-        rows = await conn.fetch(sql, levels, time_from, time_to)
+        rows = await conn.fetch(sql, params['levels'], time_from, time_to, params['modules'])
         res = []
         for row in rows:
-            event_id, timestmp, level_string, logger_name, message = row
             d = arrow.Arrow \
-                .fromtimestamp(timestmp / 1000, 'Europe/Moscow') \
+                .fromtimestamp(row['timestmp'] / 1000, 'Europe/Moscow') \
                 .format('YYYY-MM-DDTHH:mm:ss.SS')
-            rec = dict(id=event_id, app='some', datetime=d,
-                       level=level_string, logger_name=logger_name[:48], message=message)
-            res.append(rec)
+            res.append(dict(
+                id=row['event_id'],
+                app=loads(row['props']).get('appName'),
+                datetime=d,
+                level=row['level_string'],
+                logger_name=row['logger_name'],
+                message=row['message']
+            ))
     return json(res)
 
 
