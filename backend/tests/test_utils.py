@@ -19,7 +19,7 @@ def test_parse_query_empty_trace():
     trace, messages = parse_query(' some ')
 
     assert trace == ['%']
-    assert messages == ['some']
+    assert messages == ['%some%']
 
 
 def test_parse_query_trace():

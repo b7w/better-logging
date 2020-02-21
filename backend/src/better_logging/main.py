@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import time
 
 import arrow
 from asyncpg import create_pool
@@ -9,7 +8,7 @@ from sanic.log import LOGGING_CONFIG_DEFAULTS
 from sanic.response import json
 from sanic_openapi import swagger_blueprint
 
-from better_logging.core import date_between, parse_query
+from better_logging.core import date_between, parse_query, db_fetch
 
 LOGGING_CONFIG_DEFAULTS['loggers']['better_logging'] = {'level': 'INFO', 'handlers': ['console']}
 MSK_TZ = 'Europe/Moscow'
@@ -42,15 +41,14 @@ async def close_connection(app, loop):
 
 
 async def find_modules(db):
-    async with db.acquire() as conn:
-        sql = '''
+    sql = '''
             SELECT distinct mapped_value
             FROM logging_event_property
             WHERE mapped_key = 'appName'
             ORDER BY mapped_value;
         '''
-        rows = await conn.fetch(sql)
-        return [it[0] for it in rows]
+    rows = await db_fetch(db, sql)
+    return [it[0] for it in rows]
 
 
 async def update_modules(app):
@@ -87,52 +85,49 @@ async def search(request):
     """
     Logging Event search
     """
+    sql = '''
+        SELECT e.event_id,
+               e.timestmp,
+               e.level_string,
+               e.logger_name,
+               e.formatted_message as message,
+               p1.mapped_value     as app,
+               p2.mapped_value     as traceId
+        FROM logging_event e
+            LEFT JOIN logging_event_property p1 on e.event_id = p1.event_id AND p1.mapped_key = 'appName'
+            LEFT JOIN logging_event_property p2 on e.event_id = p2.event_id AND p2.mapped_key = 'trace-id'
+        WHERE e.timestmp between $1 AND $2
+            AND e.level_string = any($3::varchar[])
+            AND p1.mapped_value = any($4::varchar[])
+            AND p2.mapped_value LIKE any($5::varchar[])
+            AND lower(e.formatted_message) LIKE any($6::varchar[])
+        ORDER BY e.event_id DESC
+        LIMIT 1000
+    '''
     params = request.json
-    async with request.app.db.acquire() as conn:
-        sql = '''
-            SELECT e.event_id,
-                   e.timestmp,
-                   e.level_string,
-                   e.logger_name,
-                   e.formatted_message as message,
-                   p1.mapped_value     as app,
-                   p2.mapped_value     as traceId
-            FROM logging_event e
-                LEFT JOIN logging_event_property p1 on e.event_id = p1.event_id AND p1.mapped_key = 'appName'
-                LEFT JOIN logging_event_property p2 on e.event_id = p2.event_id AND p2.mapped_key = 'trace-id'
-            WHERE e.timestmp between $1 AND $2
-                AND e.level_string = any($3::varchar[])
-                AND p1.mapped_value = any($4::varchar[])
-                AND p2.mapped_value LIKE any($5::varchar[])
-                AND lower(e.formatted_message) LIKE any($6::varchar[])
-            ORDER BY e.event_id DESC
-            LIMIT 1000
-        '''
-        time_from, time_to = date_between(params['datetime'])
-        trace_id, messages = parse_query(params['query'])
-        star = time.time_ns()
-        rows = await conn.fetch(sql,
-                                time_from, time_to,
-                                params['levels'],
-                                params['modules'],
-                                trace_id,
-                                messages
-                                )
-        res = []
-        end = round((time.time_ns() - star) / 10 ** 6)
-        LOG.info('Found %s in %sms rows for %s', len(rows), end, params)
-        for row in rows:
-            d = arrow.Arrow \
-                .fromtimestamp(row['timestmp'] / 1000, 'Europe/Moscow') \
-                .format('YYYY-MM-DDTHH:mm:ss.SS')
-            res.append(dict(
-                id=row['event_id'],
-                app=row['app'],
-                datetime=d,
-                level=row['level_string'],
-                logger_name=row['logger_name'],
-                message=row['message']
-            ))
+    time_from, time_to = date_between(params['datetime'])
+    trace_id, messages = parse_query(params['query'])
+    rows = await db_fetch(
+        request.app.db, sql,
+        time_from, time_to,
+        params['levels'],
+        params['modules'],
+        trace_id,
+        messages
+    )
+    res = []
+    for row in rows:
+        d = arrow.Arrow \
+            .fromtimestamp(row['timestmp'] / 1000, 'Europe/Moscow') \
+            .format('YYYY-MM-DDTHH:mm:ss.SS')
+        res.append(dict(
+            id=row['event_id'],
+            app=row['app'],
+            datetime=d,
+            level=row['level_string'],
+            logger_name=row['logger_name'],
+            message=row['message']
+        ))
     return json(res)
 
 
