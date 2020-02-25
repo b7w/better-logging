@@ -11,4 +11,9 @@ services:
       - "5432:5432"
     volumes:
       - ./postgresql.sql:/docker-entrypoint-initdb.d/init.sql:ro
-  #            - ./tmp/postgres:/var/lib/postgresql/data
+      - ./tmp:/data:ro
+    logging:
+      driver: json-file
+      options:
+        max-file: "2"
+        max-size: "2m"

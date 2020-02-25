@@ -112,8 +112,11 @@
 
         },
         mounted() {
-            this.retrieveModules();
-            this.search();
+            this.retrieveModules()
+                .then(it => {
+                    this.search();
+                });
+
         },
         methods: {
             defaultPeriod() {
@@ -121,7 +124,7 @@
             },
             retrieveModules() {
                 let that = this;
-                fetch('api/modules')
+                return fetch('api/modules')
                     .then(response => {
                         return response.json()
                     })
