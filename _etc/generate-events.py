@@ -1,6 +1,8 @@
 import csv
+import gzip
 import random
 import string
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 from uuid import uuid4
@@ -65,19 +67,18 @@ def logging_event_property(total):
         yield i, 'some', some(64),
 
 
-def main():
-    total = 1_000_000
+def main(total):
     Path("tmp").mkdir(exist_ok=True)
-    with open('tmp/logging_event.csv', 'w') as f:
+    with gzip.open('tmp/logging_event.csv.gz', 'wt', encoding='utf-8') as f:
         writer = csv.writer(f, dialect=csv.unix_dialect)
         for e in logging_event(total):
             writer.writerow(e)
 
-    with open('tmp/logging_event_property.csv', 'w') as f:
+    with gzip.open('tmp/logging_event_property.csv.gz', 'wt', encoding='utf-8') as f:
         writer = csv.writer(f, dialect=csv.unix_dialect)
         for e in logging_event_property(total):
             writer.writerow(e)
 
 
 if __name__ == '__main__':
-    main()
+    main(int(sys.argv[0]))
