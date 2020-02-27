@@ -45,7 +45,8 @@ async def find_modules(db):
             SELECT distinct mapped_value
             FROM logging_event_property
             WHERE mapped_key = 'appName'
-            ORDER BY mapped_value;
+            ORDER BY mapped_value
+            LIMIT 1000000;
         '''
     rows = await db_fetch(db, sql)
     return [it[0] for it in rows]
@@ -98,10 +99,12 @@ async def search(request):
             LEFT JOIN logging_event_property p2 on e.event_id = p2.event_id AND p2.mapped_key = 'trace-id'
         WHERE e.timestmp between $1 AND $2
             AND e.level_string = any($3::varchar[])
-            AND p1.mapped_value = any($4::varchar[])
-            AND p2.mapped_value LIKE any($5::varchar[])
+            AND (p1.mapped_value = any($4::varchar[])
+                OR p1.mapped_value is null)
+            AND (p2.mapped_value LIKE any($5::varchar[])
+                OR p2.mapped_value is null)
             AND lower(e.formatted_message) LIKE any($6::varchar[])
-        ORDER BY e.event_id DESC
+        ORDER BY e.timestmp DESC
         LIMIT 1000
     '''
     params = request.json
