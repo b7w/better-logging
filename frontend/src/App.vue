@@ -19,7 +19,11 @@
         </v-app-bar>
 
         <v-content>
-            <router-view/>
+            <v-row justify="space-around">
+                <v-col cols="10">
+                    <router-view/>
+                </v-col>
+            </v-row>
         </v-content>
     </v-app>
 </template>

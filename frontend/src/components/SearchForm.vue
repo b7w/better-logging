@@ -1,6 +1,6 @@
 <template>
     <v-form v-model="valid">
-        <v-container>
+        <v-container fluid>
             <v-row>
                 <v-col cols="12" lg="12" class="pt-0 pb-0">
                     <v-text-field single-line
@@ -18,7 +18,8 @@
                               v-model="selectedLevels"
                               :items="allLevels"
                               label="Levels"
-                              multiple>
+                              multiple
+                              v-on:keyup.enter="search">
                     </v-select>
                 </v-col>
 
@@ -27,7 +28,8 @@
                               v-model="selectedModules"
                               :items="allModules"
                               label="Modules"
-                              multiple>
+                              multiple
+                              v-on:keyup.enter="search">
                         <template v-slot:prepend-item>
                             <v-list-item ripple @click="modulesToggle">
                                 <v-list-item-action>
@@ -56,7 +58,6 @@
                     <v-menu ref="menu"
                             v-model="datePickerMenu"
                             :close-on-content-click="false"
-                            :return-value.sync="period"
                             transition="scale-transition"
                             offset-y
                             full-width
@@ -65,8 +66,10 @@
                             <v-text-field v-model="periodText"
                                           label="Date range"
                                           prepend-icon="event"
-                                          readonly
-                                          v-on="on"/>
+                                          hint="YYYY-MM-DD"
+                                          persistent-hint
+                                          v-on="on"
+                                          v-on:keyup.enter="search"/>
 
                         </template>
                         <v-date-picker v-model="period" range no-title scrollable>
@@ -100,7 +103,7 @@
         },
         computed: {
             periodText() {
-                return this.period.join(' ~ ')
+                return this.period.sort().join(' ~ ')
             },
             modulesToggleIcon() {
                 if (this.selectedModules.length === this.allModules.length)

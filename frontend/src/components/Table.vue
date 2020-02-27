@@ -1,5 +1,5 @@
 <template>
-    <v-container>
+    <v-container fluid>
         <p class="caption text--secondary ml-4">Found {{ eventsCount }} events</p>
 
         <v-data-table :headers="headers"
@@ -11,7 +11,7 @@
                       :hide-default-footer="true"
                       :dense="true"
                       :single-expand="true"
-                      class="elevation-1"
+                      class="event-table elevation-1"
                       item-key="id"
                       show-expand>
             <template v-slot:expanded-item="{ headers }">
@@ -23,10 +23,9 @@
 </template>
 
 <style>
-    td {
-        word-wrap: break-word;
-        white-space: pre-line;
-        overflow-wrap: break-word;
+    .event-table td.text-start {
+        vertical-align: text-top;
+        border-bottom-style: dashed !important;
     }
 </style>
 
@@ -38,8 +37,8 @@
                     {text: 'App', value: 'app', width: 64},
                     {text: 'Datetime', value: 'datetime', width: 196},
                     {text: 'Level', value: 'level', width: 48},
-                    {text: 'Logger', value: 'logger_name', width: 48},
-                    {text: 'Message', value: 'message', width: 196},
+                    {text: 'Logger', value: 'logger_name', width: 32},
+                    {text: 'Message', value: 'message'},
                     {text: '', value: 'data-table-expand', width: 32},
                 ],
                 loading: false,
