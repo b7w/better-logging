@@ -6,10 +6,9 @@ authors = ["B7W <b7w@isudo.ru>"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
-sanic = "^19.12"
-sanic-openapi = "^0.6.1"
 asyncpg = "^0.20.1"
 arrow = "^0.15.5"
+aiohttp = "^3.6.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.3"
