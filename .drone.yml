@@ -10,7 +10,6 @@ steps:
       XDG_CACHE_HOME: tmp/pip
     commands:
       - cd backend
-      - apt-get update -qq && apt-get install -yqq build-essential python3-dev
       - pip3 install poetry
       - poetry install
       - poetry run pytest

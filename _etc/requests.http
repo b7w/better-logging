@@ -5,16 +5,15 @@ Content-Type: application/json
     "levels": [
         "ERROR",
         "WARN",
-        "INFO",
-        "DEBUG"
+        "INFO"
     ],
     "datetime": [
         "2020-02-17",
         "2020-02-18"
     ],
     "modules": [
-        "dbo",
-        "spas"
+        "app1",
+        "app2"
     ],
     "query": ""
 }
