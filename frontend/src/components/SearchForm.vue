@@ -60,7 +60,6 @@
                             :close-on-content-click="false"
                             transition="scale-transition"
                             offset-y
-                            full-width
                             min-width="290px">
                         <template v-slot:activator="{ on }">
                             <v-text-field v-model="periodText"
@@ -145,7 +144,7 @@
                     }
                 })
             },
-            search() {
+            async search() {
                 let that = this;
                 let params = {
                     method: 'POST',
@@ -158,19 +157,42 @@
                     })
                 };
                 that.store.changeLoading(true);
-                fetch('api/search', params)
-                    .then(response => {
-                        return response.json();
-                    })
-                    .then(it => {
-                        that.store.updateEvents(it);
-                    })
-                    .finally(() => {
-                        that.store.changeLoading(false);
-                    })
+                that.store.updateEvents([]);
+                const transformer = new TransformStream(new Uint8ArrayToStringsTransformer());
+                let response = await fetch('api/search', params);
+                let reader = response.body.pipeThrough(transformer).getReader();
+                while (true) {
+                    const {done, value} = await reader.read();
+                    if (done) {
+                        break
+                    }
+                    that.store.appendEvents(JSON.parse(value));
+                }
+                that.store.changeLoading(false);
             }
         }
 
     }
-    ;
+
+    class Uint8ArrayToStringsTransformer {
+        constructor() {
+            this.decoder = new TextDecoder();
+            this.lastString = ''
+        }
+
+        transform(chunk, controller) {
+            let string = `${this.lastString}${this.decoder.decode(chunk)}`;
+            let lines = string.split(/\n/g);
+            this.lastString = lines.pop() || '';
+            for (const line of lines) {
+                controller.enqueue(line)
+            }
+        }
+
+        flush(controller) {
+            if (this.lastString) {
+                controller.enqueue(this.lastString)
+            }
+        }
+    }
 </script>

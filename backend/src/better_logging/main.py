@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import os
 import sys
@@ -18,9 +19,7 @@ LOGGING_CONFIG_DEFAULTS = dict(
     disable_existing_loggers=False,
     loggers={
         "better_logging": {'level': 'INFO', 'handlers': ['console']},
-        "aiohttp.web": {'level': 'DEBUG', 'handlers': ['console']},
-        "aiohttp.access": {'level': 'DEBUG', 'handlers': ['console']},
-        "aiohttp": {'level': 'DEBUG', 'handlers': ['console']},
+        "aiohttp": {'level': 'INFO', 'handlers': ['console']},
     },
     handlers={
         "console": {
@@ -94,7 +93,7 @@ async def modules(request):
     """
     From logging properties find all `appName`s
     """
-    res = request.app.get('modules', [])
+    res = request.app.config.modules
     if res:
         return json_response(res)
     res = await find_modules(request.app.config.db)
@@ -106,8 +105,15 @@ async def search(request: web.Request):
     Logging Event search
     """
     params = await request.json()
-    res = await find_events(request.app.config, params)
-    return json_response(res)
+    events = find_events(request.app.config, params)
+    response = web.StreamResponse()
+    await response.prepare(request)
+
+    async for event in events:
+        record = bytes(json.dumps(event) + '\n', encoding='utf-8')
+        await response.write(record)
+    await response.write_eof()
+    return response
 
 
 class Config:

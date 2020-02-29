@@ -49,6 +49,9 @@
             this.store.listenUpdateEvents((data) => {
                 this.events = data;
             });
+            this.store.listenAppendEvents((data) => {
+                this.events.push(data);
+            });
             this.store.listenLoading((data) => {
                 this.loading = data;
             });

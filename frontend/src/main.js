@@ -21,8 +21,14 @@ let store = {
     updateEvents(data) {
         this.eventBus.$emit('update_events', data);
     },
+    appendEvents(data) {
+        this.eventBus.$emit('append_events', data);
+    },
     listenUpdateEvents(callback) {
         return this.eventBus.$on('update_events', callback);
+    },
+    listenAppendEvents(callback) {
+        return this.eventBus.$on('append_events', callback);
     }
 };
 Vue.prototype.store = store;

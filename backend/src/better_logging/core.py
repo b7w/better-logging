@@ -40,7 +40,7 @@ async def find_modules(db):
             FROM logging_event_property
             WHERE mapped_key = 'appName'
             ORDER BY mapped_value
-            LIMIT 1000000;
+            LIMIT 100000;
         '''
     rows = await db_fetch(db, sql)
     return [it[0] for it in rows]
@@ -78,17 +78,15 @@ async def find_events(config, params):
         trace_id,
         messages
     )
-    res = []
     for row in rows:
         d = arrow.Arrow \
             .fromtimestamp(row['timestmp'] / 1000, 'Europe/Moscow') \
             .format('YYYY-MM-DDTHH:mm:ss.SS')
-        res.append(dict(
+        yield dict(
             id=row['event_id'],
             app=row['app'],
             datetime=d,
             level=row['level_string'],
             logger_name=row['logger_name'],
             message=row['message']
-        ))
-    return res
+        )
