@@ -23,6 +23,29 @@ date;
 ```
 
 
+Run Backend
+-----------
+
+```sh
+cd backend
+pip3 install poetry
+
+poetry install
+
+export CONFIG_PATH=../_etc/sample-config.py
+python src/better_logging/main.py
+```
+
+
+Run Frontend
+-----------
+
+```shell script
+npm install
+npm run serve
+```
+
+
 About
 -----
 
