@@ -50,7 +50,11 @@
                 this.events = data;
             });
             this.store.listenAppendEvents((data) => {
-                this.events.push(data);
+                if (Array.isArray(data)) {
+                    this.events.push(...data);
+                } else {
+                    this.events.push(data);
+                }
             });
             this.store.listenLoading((data) => {
                 this.loading = data;
