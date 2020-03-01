@@ -3,7 +3,7 @@ kind: pipeline
 name: Better Logging CI/CD
 
 steps:
-  - name: Backend Tests
+  - name: Generate Script Test
     pull: always
     image: python:3.7-slim
     commands:

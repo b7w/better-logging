@@ -5,13 +5,55 @@ import Home from "./components/Home";
 import Vuetify from "vuetify/lib";
 
 Vue.config.productionTip = false;
+Vue.config.devtools = true;
+Vue.config.performance = true;
+
 
 Vue.use(VueRouter);
 Vue.use(Vuetify);
 
+class EventBus {
+    constructor() {
+        this.store = {}
+    }
+
+    buffer_factory(cl, maxLen = 8, maxTime = 8) {
+        let events = [];
+        return function (data) {
+            events.push(data);
+            if (events.length >= maxLen) {
+                console.log('Flush count ' + events.length);
+                cl(events.splice(0));
+            }
+            setInterval(function () {
+                if (events.length > 0) {
+                    console.log('Flush time' + events.length);
+                    cl(events.splice(0));
+                }
+            }, maxTime)
+        }
+    }
+
+    $on(name, callback) {
+        if (!this.store[name]) {
+            this.store[name] = [callback]
+        } else {
+            this.store[name].push(callback);
+        }
+    }
+
+    $emit(name, data) {
+        let callbacks = this.store[name];
+        if (callbacks) {
+            for (let callback of callbacks) {
+                callback(data);
+            }
+        }
+    }
+}
+
 let store = {
-    eventBus: new Vue(),
-    events: [],
+    eventBus: new EventBus(),
     changeLoading(data) {
         this.eventBus.$emit('change_loading', data);
     },
@@ -28,6 +70,7 @@ let store = {
         return this.eventBus.$on('update_events', callback);
     },
     listenAppendEvents(callback) {
+        // return this.eventBus.$on('append_events', this.eventBus.buffer_factory(callback));
         return this.eventBus.$on('append_events', callback);
     }
 };
