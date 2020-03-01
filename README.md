@@ -14,12 +14,12 @@ Generate test events
 
 ```sh
 cd _etc
+
 python generate-events.py 100000
 docker-compose up -d;
-date;
+
 echo "COPY logging_event FROM PROGRAM 'zcat /data/logging_event.csv.gz' CSV;" | psql "postgres://root:root@127.0.0.1:5432/root"
 echo "COPY logging_event_property FROM PROGRAM 'zcat /data/logging_event_property.csv.gz' CSV;" | psql "postgres://root:root@127.0.0.1:5432/root"
-date;
 ```
 
 
@@ -28,19 +28,21 @@ Run Backend
 
 ```sh
 cd backend
-pip3 install poetry
 
+pip3 install poetry
 poetry install
 
 export CONFIG_PATH=../_etc/sample-config.py
-python src/better_logging/main.py
+poetry run python src/better_logging/main.py
 ```
 
 
 Run Frontend
 -----------
 
-```shell script
+```sh
+cd frontend
+
 npm install
 npm run serve
 ```
