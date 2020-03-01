@@ -14,7 +14,7 @@ Generate test events
 
 ```sh
 cd _etc
-python generate-events.py
+python generate-events.py 100000
 docker-compose up -d;
 date;
 echo "COPY logging_event FROM PROGRAM 'zcat /data/logging_event.csv.gz' CSV;" | psql "postgres://root:root@127.0.0.1:5432/root"

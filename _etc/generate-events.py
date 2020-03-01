@@ -81,4 +81,7 @@ def main(total):
 
 
 if __name__ == '__main__':
-    main(int(sys.argv[0]))
+    if len(sys.argv) == 1:
+        print('Need count parameter')
+        sys.exit(1)
+    main(int(sys.argv[1]))
