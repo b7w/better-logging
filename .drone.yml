@@ -6,8 +6,13 @@ steps:
   - name: Backend Tests
     pull: always
     image: python:3.7-slim
-    environment:
-      XDG_CACHE_HOME: tmp/pip
+    commands:
+      - cd _etc
+      - python3 generate-events.py 100
+
+  - name: Backend Tests
+    pull: always
+    image: python:3.7-slim
     commands:
       - cd backend
       - pip3 install poetry
