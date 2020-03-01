@@ -16,7 +16,7 @@ from better_logging.core import find_modules, find_events
 
 LOGGING_CONFIG_DEFAULTS = dict(
     version=1,
-    disable_existing_loggers=False,
+    disable_existing_loggers=True,
     loggers={
         "better_logging": {'level': 'INFO', 'handlers': ['console']},
         "aiohttp": {'level': 'INFO', 'handlers': ['console']},
@@ -26,30 +26,14 @@ LOGGING_CONFIG_DEFAULTS = dict(
             "class": "logging.StreamHandler",
             "formatter": "generic",
             "stream": sys.stdout,
-        },
-        "error_console": {
-            "class": "logging.StreamHandler",
-            "formatter": "generic",
-            "stream": sys.stderr,
-        },
-        "access_console": {
-            "class": "logging.StreamHandler",
-            "formatter": "access",
-            "stream": sys.stdout,
-        },
+        }
     },
     formatters={
         "generic": {
-            "format": "%(asctime)s [%(process)d] [%(levelname)s] %(message)s",
-            "datefmt": "[%Y-%m-%d %H:%M:%S %z]",
+            "format": "[%(asctime)s] {%(process)d} [%(levelname)s] %(name)s - %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S %z",
             "class": "logging.Formatter",
-        },
-        "access": {
-            "format": "%(asctime)s - (%(name)s)[%(levelname)s][%(host)s]: "
-                      + "%(request)s %(message)s %(status)d %(byte)d",
-            "datefmt": "[%Y-%m-%d %H:%M:%S %z]",
-            "class": "logging.Formatter",
-        },
+        }
     },
 )
 
@@ -121,7 +105,7 @@ class Config:
     modules: typing.List[str] = None
     tz_info = 'Europe/Moscow'
     db_url: str = None
-    modules_update_time: str = 60
+    modules_update_time: str = 3600
 
     def __init__(self):
         filename = os.environ.get('CONFIG_PATH', 'config.py')
@@ -153,7 +137,7 @@ def main():
     app.router.add_route('GET', '/api/modules', modules)
     app.router.add_route('POST', '/api/search', search)
 
-    web.run_app(app, port=8000, print=LOG.info)
+    web.run_app(app, port=8000, print=LOG.info, access_log=None)
 
 
 if __name__ == '__main__':
