@@ -3,6 +3,7 @@ import re
 import time
 
 import arrow
+from asyncpg.pool import Pool
 
 LOG = logging.getLogger('better_logging.core')
 
@@ -25,13 +26,25 @@ def parse_query(query):
     return trace or ['%'], messages or ['%']
 
 
-async def db_fetch(db, sql, *params):
+async def db_fetch(db: Pool, sql, *params):
     async with db.acquire() as conn:
         star = time.time_ns()
         rows = await conn.fetch(sql, *params)
         end = round((time.time_ns() - star) / 10 ** 6)
         LOG.info('Found %s rows in %sms for %s parameters', len(rows), end, params)
         return rows
+
+
+async def db_cursor(db: Pool, sql, *params):
+    async with db.acquire() as conn:
+        async with conn.transaction():
+            star = time.time_ns()
+            count = 0
+            async for record in conn.cursor(sql, *params):
+                count += 1
+                yield record
+            end = round((time.time_ns() - star) / 10 ** 6)
+            LOG.info('Found %s rows in %sms for %s parameters', count, end, params)
 
 
 async def find_modules(db):
@@ -66,11 +79,11 @@ async def find_events(config, params):
                 OR p2.mapped_value is null)
             AND lower(e.formatted_message) LIKE any($6::varchar[])
         ORDER BY e.timestmp DESC
-        LIMIT 1000
+        LIMIT 512
     '''
     time_from, time_to = date_between(params['datetime'], tz_info=config.tz_info)
     trace_id, messages = parse_query(params['query'])
-    rows = await db_fetch(
+    cursor = db_cursor(
         config.db, sql,
         time_from, time_to,
         params['levels'],
@@ -78,9 +91,9 @@ async def find_events(config, params):
         trace_id,
         messages
     )
-    for row in rows:
+    async for row in cursor:
         d = arrow.Arrow \
-            .fromtimestamp(row['timestmp'] / 1000, 'Europe/Moscow') \
+            .fromtimestamp(row['timestmp'] / 1000, config.tz_info) \
             .format('YYYY-MM-DDTHH:mm:ss.SS')
         yield dict(
             id=row['event_id'],
