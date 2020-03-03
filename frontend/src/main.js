@@ -17,7 +17,7 @@ class EventBus {
         this.store = {}
     }
 
-    buffer_factory(cl, maxLen = 8, maxTime = 8) {
+    buffer_factory(cl, maxLen = 4, maxTime = 10) {
         let events = [];
         return function (data) {
             events.push(data);
@@ -27,7 +27,7 @@ class EventBus {
             }
             setInterval(function () {
                 if (events.length > 0) {
-                    console.log('Flush time' + events.length);
+                    console.log('Flush time ' + events.length);
                     cl(events.splice(0));
                 }
             }, maxTime)

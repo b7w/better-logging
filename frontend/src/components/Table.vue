@@ -2,22 +2,43 @@
     <v-container fluid>
         <p class="caption text--secondary ml-4">Found {{ eventsCount }} events</p>
 
-        <v-data-table :headers="headers"
-                      :items="events"
-                      :loading="loading"
-                      :loading-text="'Loading... Please wait'"
-                      :disable-pagination="true"
-                      :disable-sort="true"
-                      :hide-default-footer="true"
-                      :dense="true"
-                      :single-expand="true"
-                      class="event-table elevation-1"
-                      item-key="id"
-                      show-expand>
-            <template v-slot:expanded-item="{ headers }">
-                <td :colspan="headers.length">Peek-a-boo!</td>
-            </template>
-        </v-data-table>
+        <div class="v-data-table event-table elevation-1 v-data-table--dense theme--light">
+            <div class="v-data-table__wrapper">
+                <table>
+                    <colgroup>
+                        <col class="">
+                        <col class="">
+                        <col class="">
+                        <col class="">
+                        <col class="">
+                    </colgroup>
+                    <thead class="v-data-table-header">
+                    <tr>
+                        <th role="columnheader" scope="col" aria-label="App" aria-sort="none" class="text-start"
+                            style="width: 64px; min-width: 64px;">
+                            <span>App</span>
+                        </th>
+                        <th role="columnheader" scope="col" aria-label="Datetime" aria-sort="none" class="text-start"
+                            style="width: 196px; min-width: 196px;">
+                            <span>Datetime</span>
+                        </th>
+                        <th role="columnheader" scope="col" aria-label="Level" aria-sort="none" class="text-start"
+                            style="width: 48px; min-width: 48px;">
+                            <span>Level</span>
+                        </th>
+                        <th role="columnheader" scope="col" aria-label="Logger" aria-sort="none" class="text-start"
+                            style="width: 32px; min-width: 32px;">
+                            <span>Logger</span>
+                        </th>
+                        <th role="columnheader" scope="col" aria-label="Message" aria-sort="none" class="text-start">
+                            <span>Message</span>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody id="events"></tbody>
+                </table>
+            </div>
+        </div>
 
     </v-container>
 </template>
@@ -43,17 +64,42 @@
                 ],
                 loading: false,
                 events: [],
+                count: 0,
             }
         },
+        methods: {
+            createTr: function (event) {
+                let el = document.createElement("tr");
+                el.appendChild(this.createTd(event.app));
+                el.appendChild(this.createTd(event.datetime));
+                el.appendChild(this.createTd(event.level));
+                el.appendChild(this.createTd(event.logger_name));
+                el.appendChild(this.createTd(event.message));
+                return el
+            },
+            createTd: function (value) {
+                let el = document.createElement("td");
+                el.setAttribute("class", "text-start");
+                el.appendChild(document.createTextNode(value));
+                return el
+            },
+        },
         mounted() {
+            let events = document.getElementById("events");
+
             this.store.listenUpdateEvents((data) => {
-                this.events = data;
+                events.innerHTML = '';
+                this.count = 0;
             });
             this.store.listenAppendEvents((data) => {
                 if (Array.isArray(data)) {
-                    this.events.push(...data);
+                    this.count += data.length;
+                    for (let event of data) {
+                        events.appendChild(this.createTr(event))
+                    }
                 } else {
-                    this.events.push(data);
+                    this.count += 1;
+                    events.appendChild(this.createTr(data))
                 }
             });
             this.store.listenLoading((data) => {
@@ -62,7 +108,7 @@
         },
         computed: {
             eventsCount() {
-                return this.events.length
+                return this.count;
             },
         },
     }

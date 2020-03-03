@@ -40,7 +40,7 @@ async def db_cursor(db: Pool, sql, *params):
         async with conn.transaction():
             star = time.time_ns()
             count = 0
-            async for record in conn.cursor(sql, *params):
+            async for record in conn.cursor(sql, *params, prefetch=2):
                 count += 1
                 yield record
             end = round((time.time_ns() - star) / 10 ** 6)
@@ -79,7 +79,7 @@ async def find_events(config, params):
                 OR p2.mapped_value is null)
             AND lower(e.formatted_message) LIKE any($6::varchar[])
         ORDER BY e.timestmp DESC
-        LIMIT 512
+        LIMIT 2048
     '''
     time_from, time_to = date_between(params['datetime'], tz_info=config.tz_info)
     trace_id, messages = parse_query(params['query'])
