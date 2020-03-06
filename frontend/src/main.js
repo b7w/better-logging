@@ -60,17 +60,16 @@ let store = {
     listenLoading(callback) {
         return this.eventBus.$on('change_loading', callback);
     },
-    updateEvents(data) {
-        this.eventBus.$emit('update_events', data);
+    clearEvents() {
+        this.eventBus.$emit('clear_events');
     },
     appendEvents(data) {
         this.eventBus.$emit('append_events', data);
     },
-    listenUpdateEvents(callback) {
-        return this.eventBus.$on('update_events', callback);
+    listenClearEvents(callback) {
+        return this.eventBus.$on('clear_events', callback);
     },
     listenAppendEvents(callback) {
-        // return this.eventBus.$on('append_events', this.eventBus.buffer_factory(callback));
         return this.eventBus.$on('append_events', callback);
     }
 };

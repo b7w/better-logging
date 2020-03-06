@@ -157,8 +157,8 @@
                     })
                 };
                 that.store.changeLoading(true);
-                that.store.updateEvents([]);
-                const transformer = new TransformStream(new Uint8ArrayToStringsTransformer());
+                that.store.clearEvents();
+                let transformer = new TransformStream(new Uint8ArrayToStringsTransformer());
                 let response = await fetch('api/search', params);
                 let reader = response.body.pipeThrough(transformer).getReader();
                 while (true) {

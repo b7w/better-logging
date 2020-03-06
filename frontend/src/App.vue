@@ -14,7 +14,12 @@
             </div>
 
             <v-toolbar-title>Better Logging</v-toolbar-title>
-
+            <v-progress-circular v-show="loading"
+                                 :indeterminate="loading"
+                                 :rotate="true"
+                                 :size="36"
+                                 :width="4"
+                                 class="ml-4"/>
             <v-spacer/>
         </v-app-bar>
 
@@ -29,5 +34,18 @@
 </template>
 
 <script>
+    export default {
+        name: "App",
+        data() {
+            return {
+                loading: false,
+            }
+        },
+        mounted() {
+            this.store.listenLoading((data) => {
+                this.loading = data;
+            });
+        }
+    }
 
 </script>

@@ -1,6 +1,6 @@
 <template>
     <v-container fluid>
-        <p class="caption text--secondary ml-4">Found {{ eventsCount }} events</p>
+        <p class="caption text--secondary ml-4">Found {{ count }} events</p>
 
         <div class="v-data-table event-table elevation-1 v-data-table--dense theme--light">
             <div class="v-data-table__wrapper">
@@ -62,8 +62,6 @@
                     {text: 'Message', value: 'message'},
                     {text: '', value: 'data-table-expand', width: 32},
                 ],
-                loading: false,
-                events: [],
                 count: 0,
             }
         },
@@ -87,7 +85,7 @@
         mounted() {
             let events = document.getElementById("events");
 
-            this.store.listenUpdateEvents((data) => {
+            this.store.listenClearEvents(() => {
                 events.innerHTML = '';
                 this.count = 0;
             });
@@ -102,14 +100,6 @@
                     events.appendChild(this.createTr(data))
                 }
             });
-            this.store.listenLoading((data) => {
-                this.loading = data;
-            });
-        },
-        computed: {
-            eventsCount() {
-                return this.count;
-            },
         },
     }
 </script>
