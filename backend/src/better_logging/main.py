@@ -52,14 +52,15 @@ async def register_db(app: web.Application):
 
 
 async def close_connection(app: web.Application):
-    await app.db.close()
-    LOG.info('Closed PG pool')
+    if app.config.db:
+        await app.db.close()
+        LOG.info('Closed PG pool')
 
 
 async def update_modules(app: web.Application):
     t = app.config.modules_update_time
     while True:
-        res = await find_modules(app.config.db)
+        res = await find_modules(app.config)
         if app.config.modules != res:
             app.config.modules = res
             LOG.info('Update modules: %s', res)
@@ -80,7 +81,7 @@ async def modules(request):
     res = request.app.config.modules
     if res:
         return json_response(res)
-    res = await find_modules(request.app.config.db)
+    res = await find_modules(request.app.config)
     return json_response(res)
 
 
@@ -106,6 +107,8 @@ class Config:
     tz_info = 'Europe/Moscow'
     db_url: str = None
     modules_update_time: str = 3600
+    modules_query_limit: int = 4 * 10 ** 6
+    search_query_limit: int = 4096
 
     def __init__(self):
         filename = os.environ.get('CONFIG_PATH', 'config.py')

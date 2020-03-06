@@ -6,7 +6,7 @@
                     alt="Vuetify Logo"
                     class="shrink mr-2"
                     contain
-                    src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
+                    src="vuetify-logo-dark.png"
                     transition="scale-transition"
                     width="40"
                 />
@@ -16,7 +16,6 @@
             <v-toolbar-title>Better Logging</v-toolbar-title>
             <v-progress-circular v-show="loading"
                                  :indeterminate="loading"
-                                 :rotate="true"
                                  :size="36"
                                  :width="4"
                                  class="ml-4"/>

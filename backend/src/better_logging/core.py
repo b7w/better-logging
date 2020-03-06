@@ -47,15 +47,14 @@ async def db_cursor(db: Pool, sql, *params):
             LOG.info('Found %s rows in %sms for %s parameters', count, end, params)
 
 
-async def find_modules(db):
+async def find_modules(config):
     sql = '''
             SELECT distinct mapped_value
             FROM logging_event_property
             WHERE mapped_key = 'appName'
-            ORDER BY mapped_value
-            LIMIT 100000;
+            LIMIT $1;
         '''
-    rows = await db_fetch(db, sql)
+    rows = await db_fetch(config.db, sql, config.modules_query_limit)
     return [it[0] for it in rows]
 
 
@@ -79,7 +78,7 @@ async def find_events(config, params):
                 OR p2.mapped_value is null)
             AND lower(e.formatted_message) LIKE any($6::varchar[])
         ORDER BY e.timestmp DESC
-        LIMIT 2048
+        LIMIT $7
     '''
     time_from, time_to = date_between(params['datetime'], tz_info=config.tz_info)
     trace_id, messages = parse_query(params['query'])
@@ -89,7 +88,8 @@ async def find_events(config, params):
         params['levels'],
         params['modules'],
         trace_id,
-        messages
+        messages,
+        config.search_query_limit
     )
     async for row in cursor:
         d = arrow.Arrow \
