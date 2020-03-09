@@ -3,6 +3,8 @@ Better Logging
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://drone.b7w.me/api/badges/b7w/better-logging/status.svg)](https://drone.b7w.me/b7w/better-logging)
+[![Wheel Support](https://img.shields.io/pypi/wheel/better-logging)](https://pypi.org/project/better-logging/)
+[![Wheel Support](https://img.shields.io/pypi/pyversions/better-logging)](https://pypi.org/project/better-logging/)
 
 
 Simple UI for Logback Postgres DBAppender

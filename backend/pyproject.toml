@@ -5,7 +5,7 @@ description = "Simple UI for Logback Postgres DBAppender"
 authors = ["B7W <b7w@isudo.ru>"]
 
 license = "MIT"
-readme = "../README.md"
+readme = "README.md"
 repository = "https://github.com/b7w/better-logging"
 
 [tool.poetry.dependencies]
