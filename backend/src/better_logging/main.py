@@ -72,7 +72,7 @@ async def update_modules(app: web.Application):
 
 
 async def update_modules_nowait(app: web.Application):
-    asyncio.create_task(update_modules(app))
+    asyncio.ensure_future(update_modules(app))
 
 
 async def modules(request):

@@ -30,7 +30,7 @@ async def db_fetch(db: Pool, sql, *params):
     async with db.acquire() as conn:
         star = time.time_ns()
         rows = await conn.fetch(sql, *params)
-        end = round((time.time_ns() - star) / 10 ** 6)
+        end = round((time.time_ns() - star) * 1000)
         LOG.info('Found %s rows in %sms for %s parameters', len(rows), end, params)
         return rows
 

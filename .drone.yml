@@ -5,14 +5,14 @@ name: Better Logging CI/CD
 steps:
   - name: Generate Script Test
     pull: always
-    image: python:3.7-slim
+    image: python:3.6-slim
     commands:
       - cd _etc
       - python3 generate-events.py 100
 
   - name: Backend Tests
     pull: always
-    image: python:3.7-slim
+    image: python:3.6-slim
     commands:
       - cd backend
       - pip3 install poetry
