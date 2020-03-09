@@ -66,7 +66,7 @@ async def find_events(config, params):
                e.logger_name,
                e.formatted_message as message,
                p1.mapped_value     as app,
-               p2.mapped_value     as traceId
+               p2.mapped_value     as trace_id
         FROM logging_event e
             LEFT JOIN logging_event_property p1 on e.event_id = p1.event_id AND p1.mapped_key = 'appName'
             LEFT JOIN logging_event_property p2 on e.event_id = p2.event_id AND p2.mapped_key = 'trace-id'
@@ -100,6 +100,7 @@ async def find_events(config, params):
             app=row['app'],
             datetime=d,
             level=row['level_string'],
-            logger_name=row['logger_name'],
+            trace_id=row['trace_id'],
+            logger_name=row['logger_name'][-32:],
             message=row['message']
         )

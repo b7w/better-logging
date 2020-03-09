@@ -28,11 +28,11 @@
             return {
                 headers: [
                     {text: 'App', value: 'app', width: 64},
-                    {text: 'Datetime', value: 'datetime', width: 196},
+                    {text: 'Datetime', value: 'datetime', width: 200},
                     {text: 'Level', value: 'level', width: 48},
-                    {text: 'Logger', value: 'logger_name', width: 32},
+                    {text: 'Logger', value: 'logger_name', width: 48},
+                    {text: 'Trace', value: 'trace_id', width: 300},
                     {text: 'Message', value: 'message'},
-                    {text: '', value: 'data-table-expand', width: 32},
                 ],
                 count: 0,
             }
@@ -44,6 +44,7 @@
                 el.appendChild(this.createTd(event.datetime));
                 el.appendChild(this.createTd(event.level));
                 el.appendChild(this.createTd(event.logger_name));
+                el.appendChild(this.createTd(event.trace_id));
                 el.appendChild(this.createTd(event.message));
                 return el
             },
