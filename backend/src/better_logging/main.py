@@ -6,6 +6,7 @@ import sys
 import types
 import typing
 from logging.config import dictConfig
+from pathlib import Path
 
 from aiohttp import web
 from aiohttp.web_response import json_response
@@ -53,7 +54,7 @@ async def register_db(app: web.Application):
 
 async def close_connection(app: web.Application):
     if app.config.db:
-        await app.db.close()
+        await app.config.db.close()
         LOG.info('Closed PG pool')
 
 
@@ -112,16 +113,16 @@ class Config:
 
     def __init__(self):
         filename = os.environ.get('CONFIG_PATH', 'config.py')
-        module = types.ModuleType("config")
+        module = types.ModuleType('config')
         module.__file__ = filename
         try:
             with open(filename) as config_file:
                 exec(
-                    compile(config_file.read(), filename, "exec"),
+                    compile(config_file.read(), filename, 'exec'),
                     module.__dict__,
                 )
         except IOError as e:
-            e.strerror = f"Unable to load config file ({e.strerror})"
+            e.strerror = f'Unable to load config file "{filename}" ({e.strerror})'
             raise
 
         for key in dir(module):
@@ -139,6 +140,7 @@ def main():
     app.on_cleanup.append(close_connection)
     app.router.add_route('GET', '/api/modules', modules)
     app.router.add_route('POST', '/api/search', search)
+    app.router.add_static('/', Path(Path(__file__).parent, 'static'))
 
     web.run_app(app, port=8000, print=LOG.info, access_log=None)
 
