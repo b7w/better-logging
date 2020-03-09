@@ -7,10 +7,11 @@ steps:
     pull: always
     image: python:3.6-slim
     commands:
+      - cp -f README.md backend/
       - cd _etc
       - python3 generate-events.py 100
 
-  - name: Backend Tests
+  - name: Tests
     pull: always
     image: python:3.6-slim
     commands:
@@ -19,7 +20,7 @@ steps:
       - poetry install
       - poetry run pytest
 
-  - name: Frontend Tests
+  - name: Build frontend
     pull: always
     image: node:13-alpine
     commands:
@@ -27,13 +28,12 @@ steps:
       - npm install
       - npm run build
 
-  - name: Build
+  - name: Build backend
     pull: always
     image: python:3.6-slim
     commands:
       - cd backend
       - pip3 install poetry
-      - cp -f ../README.md .
       - cp -rf ../frontend/dist/* src/better_logging/static
       - poetry build
 
