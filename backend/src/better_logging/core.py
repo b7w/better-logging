@@ -28,9 +28,9 @@ def parse_query(query):
 
 async def db_fetch(db: Pool, sql, *params):
     async with db.acquire() as conn:
-        star = time.time_ns()
+        star = time.time()
         rows = await conn.fetch(sql, *params)
-        end = round((time.time_ns() - star) * 1000)
+        end = round((time.time() - star) * 1000)
         LOG.info('Found %s rows in %sms for %s parameters', len(rows), end, params)
         return rows
 
@@ -38,12 +38,12 @@ async def db_fetch(db: Pool, sql, *params):
 async def db_cursor(db: Pool, sql, *params):
     async with db.acquire() as conn:
         async with conn.transaction():
-            star = time.time_ns()
+            star = time.time()
             count = 0
             async for record in conn.cursor(sql, *params, prefetch=2):
                 count += 1
                 yield record
-            end = round((time.time_ns() - star) / 10 ** 6)
+            end = round((time.time() - star) / 1000)
             LOG.info('Found %s rows in %sms for %s parameters', count, end, params)
 
 
