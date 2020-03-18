@@ -23,12 +23,10 @@ steps:
   - name: Build frontend
     pull: always
     image: node:13-alpine
-    environment:
-      NODE_ENV: 'production'
     commands:
       - cd frontend
       - npm install
-      - npm run build
+      - NODE_ENV=production npm run build
 
   - name: Build backend
     pull: always
