@@ -5,6 +5,7 @@ Better Logging
 [![Build Status](https://drone.b7w.me/api/badges/b7w/better-logging/status.svg)](https://drone.b7w.me/b7w/better-logging)
 [![Wheel Support](https://img.shields.io/pypi/wheel/better-logging)](https://pypi.org/project/better-logging/)
 [![Wheel Support](https://img.shields.io/pypi/pyversions/better-logging)](https://pypi.org/project/better-logging/)
+[![PyPI version](https://badge.fury.io/py/better-logging.svg)](https://badge.fury.io/py/better-logging)
 
 
 Simple UI for Logback Postgres DBAppender

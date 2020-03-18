@@ -3,6 +3,7 @@ import App from "./App.vue";
 import VueRouter from "vue-router";
 import Home from "./components/Home";
 import Vuetify from "vuetify/lib";
+import 'material-design-icons-iconfont/dist/material-design-icons.css';
 
 Vue.config.productionTip = false;
 Vue.config.devtools = true;
@@ -93,7 +94,11 @@ const router = new VueRouter({
     routes
 });
 
-const vuetify = new Vuetify({});
+const vuetify = new Vuetify({
+    icons: {
+        iconfont: 'md',
+    },
+});
 
 new Vue({
     router: router,
