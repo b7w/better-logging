@@ -49,3 +49,6 @@ steps:
       - cd backend
       - pip3 install poetry
       - poetry publish --username __token__ --password $TOKEN
+    when:
+      branch:
+        - master
