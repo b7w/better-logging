@@ -30,7 +30,6 @@
                     {text: 'App', value: 'app', width: 64},
                     {text: 'Datetime', value: 'datetime', width: 200},
                     {text: 'Level', value: 'level', width: 48},
-                    {text: 'Logger', value: 'logger_name', width: 48},
                     {text: 'Trace', value: 'trace_id', width: 300},
                     {text: 'Message', value: 'message'},
                 ],
@@ -43,7 +42,6 @@
                 el.appendChild(this.createTd(event.app));
                 el.appendChild(this.createTd(event.datetime));
                 el.appendChild(this.createTd(event.level));
-                el.appendChild(this.createTd(event.logger_name));
                 el.appendChild(this.createTd(event.trace_id));
                 el.appendChild(this.createTd(event.message));
                 return el

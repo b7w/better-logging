@@ -69,21 +69,23 @@ async def find_events(config, params):
                p2.mapped_value     as trace_id
         FROM logging_event e
             LEFT JOIN logging_event_property p1 on e.event_id = p1.event_id AND p1.mapped_key = 'appName'
-            LEFT JOIN logging_event_property p2 on e.event_id = p2.event_id AND p2.mapped_key = 'trace-id'
-        WHERE e.timestmp between $1 AND $2
-            AND e.level_string = any($3::varchar[])
-            AND (p1.mapped_value = any($4::varchar[])
+            LEFT JOIN logging_event_property p2 on e.event_id = p2.event_id AND lower(p2.mapped_key) = any($1::varchar[])
+        WHERE e.timestmp between $2 AND $3
+            AND e.level_string = any($4::varchar[])
+            AND (p1.mapped_value = any($5::varchar[])
                 OR p1.mapped_value is null)
-            AND (p2.mapped_value LIKE any($5::varchar[])
+            AND (p2.mapped_value LIKE any($6::varchar[])
                 OR p2.mapped_value is null)
-            AND lower(e.formatted_message) LIKE any($6::varchar[])
+            AND lower(e.formatted_message) LIKE any($7::varchar[])
         ORDER BY e.timestmp DESC
-        LIMIT $7
+        LIMIT $8
     '''
     time_from, time_to = date_between(params['datetime'], tz_info=config.tz_info)
     trace_id, messages = parse_query(params['query'])
+    trace_keys = [i.lower() for i in config.trace_keys]
     cursor = db_cursor(
         config.db, sql,
+        trace_keys,
         time_from, time_to,
         params['levels'],
         params['modules'],

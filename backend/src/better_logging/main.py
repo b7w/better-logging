@@ -103,13 +103,14 @@ async def search(request: web.Request):
 
 
 class Config:
-    db: Pool = None
-    modules: typing.List[str] = None
     tz_info = 'Europe/Moscow'
     db_url: str = None
+    db: Pool = None
+    modules: typing.List[str] = None
     modules_update_time: str = 3600
     modules_query_limit: int = 4 * 10 ** 6
     search_query_limit: int = 4096
+    trace_keys: typing.List[str] = ['trace-id', 'traceId', 'request.uid', 'RqUID']
 
     def __init__(self):
         filename = os.environ.get('CONFIG_PATH', 'config.py')
